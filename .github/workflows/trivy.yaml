@@ -16,22 +16,17 @@ jobs:
       run: |
         docker build -t juice-shop:latest .
 
-    - name: Trivy image scan + HTML report
-      uses: aquasecurity/trivy-action@0.33.1
-      with:
-        scan-type: image
-        scan-ref: juice-shop:latest
-        format: template
-        template: '@/contrib/html.tpl'
-        output: trivy-report.html
+    - name: Install Trivy
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.67.2
+
+    - name: Scan image and generate HTML report
+      run: |
+        trivy image --format template --template "@contrib/html.tpl" --output trivy-report.html juice-shop:latest
 
     - name: Generate SBOM
       run: |
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy:latest image \
-          --format cyclonedx \
-          juice-shop:latest > sbom.cyclonedx.json
+        trivy image --format cyclonedx --output sbom.cyclonedx.json juice-shop:latest
 
     - name: Upload Trivy scan report
       uses: actions/upload-artifact@v4
@@ -44,5 +39,3 @@ jobs:
       with:
         name: sbom-cyclonedx
         path: sbom.cyclonedx.json
-
-
