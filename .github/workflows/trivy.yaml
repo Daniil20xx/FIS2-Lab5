@@ -1,4 +1,4 @@
-name: Trivy Security Scan
+name: Trivy Scan
 
 on:
   push:
@@ -18,11 +18,18 @@ jobs:
 
     - name: Install Trivy
       run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.67.2
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-    - name: Scan image and generate HTML report
+    - name: Generate reports without template issues
       run: |
-        trivy image --format template --template "@contrib/html.tpl" --output trivy-report.html juice-shop:latest
+        trivy image --format json --output trivy-results.json juice-shop:latest
+      
+        trivy image --format table --output trivy-table.txt juice-shop:latest
+        
+        echo "<html><body><h1>Trivy Security Report</h1><h2>juice-shop:latest</h2>" > trivy-report.html
+        echo "<h3>Vulnerabilities:</h3><pre>" >> trivy-report.html
+        cat trivy-table.txt >> trivy-report.html
+        echo "</pre></body></html>" >> trivy-report.html
 
     - name: Generate SBOM
       run: |
