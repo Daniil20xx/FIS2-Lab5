@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   trivy-scan:
@@ -16,31 +13,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Trivy
+      - name: Trivy FS scan (vulnerabilities + secrets)
         uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: fs
           scan-ref: .
+          severity: HIGH,CRITICAL
           format: template
-          template: "@contrib/html.tpl"
+          template: .github/trivy-template.html
           output: trivy-report.html
-
-      - name: Install Trivy CLI for SBOM
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Generate SBOM
         run: trivy sbom --format cyclonedx --output sbom.json .
     
-      - name: Upload SBOM as artifact
+      - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
-          name: SBOM
-          path: |
-            trivy.html
-            sbom.json
+          name: trivy-html-report
+          path: trivy-report.html
 
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-sbom
+          path: sbom.json
       
+
 
 
 
