@@ -13,19 +13,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Trivy FS scan (vulnerabilities + secrets)
+      - name: Build Juice-Shop Docker image
+        run: docker build -t juice-shop .
+
+      - name: Trivy image scan + HTML report
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          scan-type: fs
-          scan-ref: .
-          severity: HIGH,CRITICAL
+          scan-type: image
+          scan-ref: juice-shop
           format: template
           template: .github/trivy-template.html
           output: trivy-report.html
+          severity: HIGH,CRITICAL
 
-      - name: Generate SBOM
-        run: trivy sbom --format cyclonedx --scanners vuln --output sbom.json .
-    
+      - name: Generate SBOM from Docker image
+        run: trivy sbom --format cyclonedx --output sbom.json juice-shop
+
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
@@ -37,9 +40,3 @@ jobs:
         with:
           name: trivy-sbom
           path: sbom.json
-      
-
-
-
-
-
