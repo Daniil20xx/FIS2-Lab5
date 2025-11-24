@@ -22,7 +22,7 @@ jobs:
         scan-type: image
         scan-ref: juice-shop:latest
         format: template
-        template: .github/trivy-template.html
+        template: '@/contrib/html.tpl'
         output: trivy-report.html
 
     - name: Generate SBOM
@@ -44,4 +44,5 @@ jobs:
       with:
         name: sbom-cyclonedx
         path: sbom.cyclonedx.json
+
 
