@@ -3,8 +3,6 @@ name: Trivy Security Scan
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   security-scan:
@@ -18,14 +16,14 @@ jobs:
       run: |
         docker build -t juice-shop:latest .
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+    - name: Trivy image scan + HTML report
+      uses: aquasecurity/trivy-action@0.33.1
       with:
-        image-ref: 'juice-shop:latest'
-        format: 'template'
-        template: '@/contrib/html.tpl'
-        output: 'trivy-report.html'
-        severity: 'CRITICAL,HIGH'
+        scan-type: image
+        scan-ref: juice-shop:latest
+        format: template
+        template: .github/trivy-template.html
+        output: trivy-report.html
 
     - name: Generate SBOM
       run: |
@@ -46,3 +44,4 @@ jobs:
       with:
         name: sbom-cyclonedx
         path: sbom.cyclonedx.json
+
