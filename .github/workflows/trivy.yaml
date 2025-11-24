@@ -24,7 +24,7 @@ jobs:
           output: trivy-report.html
 
       - name: Generate SBOM
-        run: trivy sbom --format cyclonedx --output sbom.json .
+        run: trivy sbom --format cyclonedx --scanners vuln --output sbom.json .
     
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -38,6 +38,7 @@ jobs:
           name: trivy-sbom
           path: sbom.json
       
+
 
 
 
