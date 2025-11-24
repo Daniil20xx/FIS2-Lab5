@@ -1,4 +1,4 @@
-﻿name: Trivy Scan
+name: Trivy Scan
 
 on:
   push:
@@ -20,14 +20,14 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
-          scan-ref: juice-shop
+          scan-ref: juice-shop:latest
           format: template
           template: .github/trivy-template.html
           output: trivy-report.html
           severity: HIGH,CRITICAL
 
       - name: Generate SBOM from Docker image
-        run: trivy sbom --format cyclonedx --output sbom.json juice-shop
+        run: trivy sbom --format cyclonedx --scanners vuln --output sbom.json juice-shop:latest
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
