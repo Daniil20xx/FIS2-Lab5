@@ -1,42 +1,48 @@
-name: Trivy Scan
+name: Trivy Security Scan
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  trivy-scan:
+  security-scan:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Build Juice-Shop Docker image
-        run: docker build -t juice-shop .
+    - name: Build Docker image
+      run: |
+        docker build -t juice-shop:latest .
 
-      - name: Trivy image scan + HTML report
-        uses: aquasecurity/trivy-action@0.33.1
-        with:
-          scan-type: image
-          scan-ref: juice-shop:latest
-          format: template
-          template: .github/trivy-template.html
-          output: trivy-report.html
-          severity: HIGH,CRITICAL
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'juice-shop:latest'
+        format: 'template'
+        template: '@/contrib/html.tpl'
+        output: 'trivy-report.html'
+        severity: 'CRITICAL,HIGH'
 
-      - name: Generate SBOM from Docker image
-        run: trivy sbom --format cyclonedx --scanners vuln --output sbom.json juice-shop:latest
+    - name: Generate SBOM
+      run: |
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          aquasec/trivy:latest image \
+          --format cyclonedx \
+          juice-shop:latest > sbom.cyclonedx.json
 
-      - name: Upload HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-html-report
-          path: trivy-report.html
+    - name: Upload Trivy scan report
+      uses: actions/upload-artifact@v4
+      with:
+        name: trivy-security-report
+        path: trivy-report.html
 
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-sbom
-          path: sbom.json
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-cyclonedx
+        path: sbom.cyclonedx.json
