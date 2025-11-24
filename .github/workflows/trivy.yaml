@@ -20,6 +20,7 @@ jobs:
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
+<<<<<<< HEAD
     - name: Generate reports without template issues
       run: |
         trivy image --format json --output trivy-results.json juice-shop:latest
@@ -30,6 +31,14 @@ jobs:
         echo "<h3>Vulnerabilities:</h3><pre>" >> trivy-report.html
         cat trivy-table.txt >> trivy-report.html
         echo "</pre></body></html>" >> trivy-report.html
+=======
+    - name: Scan image with local HTML template
+      run: |
+        trivy image --format template \
+          --template .github/trivy-templates/html.tpl \
+          --output trivy-report.html \
+          juice-shop:latest
+>>>>>>> e3d04702aa88af49627ad12cc0f5056cdd8b479e
 
     - name: Generate SBOM
       run: |
